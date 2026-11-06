@@ -1,0 +1,11 @@
+
+PySide6
+pandas
+openpyxl
+matplotlib
+numpy
+scikit-learn
+xgboost
+statsmodels
+scipy
+joblib
