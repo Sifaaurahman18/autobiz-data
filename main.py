@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView
 )
 
+import matplotlib as mpl
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
@@ -40,129 +41,214 @@ from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
 
 warnings.filterwarnings("ignore")
 
+CHART_BLUE = "#536dfe"
+CHART_TEAL = "#14b8a6"
+CHART_AMBER = "#f59e0b"
+CHART_PURPLE = "#8b5cf6"
+CHART_COLORS = [CHART_BLUE, CHART_TEAL, CHART_AMBER, CHART_PURPLE]
+
+mpl.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Aptos", "Segoe UI", "Arial", "DejaVu Sans"],
+    "font.size": 9,
+    "text.color": "#26334d",
+    "axes.facecolor": "#ffffff",
+    "axes.edgecolor": "#e4e9f2",
+    "axes.labelcolor": "#71809a",
+    "axes.titlecolor": "#26334d",
+    "axes.titleweight": "semibold",
+    "axes.grid": True,
+    "grid.color": "#e8edf5",
+    "grid.alpha": 0.8,
+    "xtick.color": "#71809a",
+    "ytick.color": "#71809a",
+    "figure.facecolor": "#ffffff",
+    "legend.facecolor": "#ffffff",
+    "legend.edgecolor": "#e4e9f2",
+})
+
 
 APP_STYLE = """
-QMainWindow, QWidget#mainContent {
-    background: #f2f6fc;
-    color: #18345b;
-    font-family: Segoe UI;
+QMainWindow {
+    background: #f4f6fb;
+}
+QWidget {
+    color: #26334d;
+    font-family: Aptos, "Segoe UI", Arial;
     font-size: 12px;
 }
+QWidget#mainContent {
+    background: #f4f6fb;
+}
 QWidget#sidebar {
-    background: #103477;
+    background: #17233d;
 }
 QLabel#brand {
     color: white;
-    font-size: 23px;
+    font-size: 22px;
     font-weight: 700;
 }
 QLabel#brandSub {
-    color: #d7e5ff;
+    color: #9eacc6;
     font-size: 9px;
+    letter-spacing: 1px;
 }
 QLabel#pageTitle {
-    color: #153765;
-    font-size: 27px;
+    color: #1c2942;
+    font-size: 28px;
     font-weight: 700;
 }
 QLabel#subtitle {
-    color: #7085a8;
+    color: #77849b;
     font-size: 12px;
 }
 QFrame#card {
     background: white;
-    border: 1px solid #dce6f5;
-    border-radius: 12px;
+    border: 1px solid #e6eaf2;
+    border-radius: 15px;
+}
+QFrame#metricCard {
+    border-top: 3px solid #536dfe;
+}
+QFrame#metricCard[tone="columns"] {
+    border-top-color: #14b8a6;
+}
+QFrame#metricCard[tone="missing"] {
+    border-top-color: #f59e0b;
+}
+QFrame#metricCard[tone="duplicates"] {
+    border-top-color: #8b5cf6;
 }
 QLabel#sectionTitle {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
-    color: #173765;
+    color: #26334d;
     background: transparent;
     border: none;
 }
 QLabel#metricLabel {
-    color: #7185a8;
+    color: #7a879d;
     font-size: 10px;
+    font-weight: 700;
     background: transparent;
     border: none;
 }
 QLabel#metricValue {
-    color: #153765;
-    font-size: 24px;
+    color: #26334d;
+    font-size: 26px;
     font-weight: 700;
     background: transparent;
     border: none;
 }
 QLabel#muted {
-    color: #7085a8;
+    color: #77849b;
     background: transparent;
     border: none;
 }
 QPushButton {
     border: none;
-    border-radius: 7px;
-    padding: 10px 12px;
-    background: #eaf1ff;
-    color: #17458e;
+    border-radius: 9px;
+    padding: 10px 14px;
+    background: #edf1f8;
+    color: #34425d;
     font-weight: 600;
 }
 QPushButton:hover {
-    background: #dce8ff;
+    background: #e2e8f3;
+}
+QPushButton:pressed {
+    background: #d8e0ee;
+}
+QPushButton:disabled {
+    background: #eef1f6;
+    color: #a4adbb;
 }
 QPushButton#primary {
-    background: #2861e8;
+    background: #536dfe;
     color: white;
     min-height: 20px;
 }
 QPushButton#primary:hover {
-    background: #174dcc;
+    background: #4058e8;
 }
 QPushButton#navButton {
     background: transparent;
-    color: #e5edff;
+    color: #b6c1d5;
     text-align: left;
-    padding: 12px 10px;
-    border-radius: 8px;
-    min-height: 18px;
+    padding: 12px 11px;
+    border-radius: 9px;
+    min-height: 20px;
 }
 QPushButton#navButton:hover, QPushButton#navButton:checked {
-    background: #2868e8;
+    background: #263755;
     color: white;
 }
-QComboBox, QSpinBox, QLineEdit {
+QComboBox, QSpinBox, QLineEdit, QTextEdit, QTableWidget {
     background: white;
-    color: #18345b;
-    border: 1px solid #d5e0f1;
-    border-radius: 7px;
-    padding: 7px 9px;
+    color: #26334d;
+    border: 1px solid #e1e6ef;
+    border-radius: 9px;
+}
+QComboBox, QSpinBox, QLineEdit {
+    padding: 8px 10px;
     min-height: 22px;
+}
+QComboBox:focus, QSpinBox:focus, QLineEdit:focus, QTextEdit:focus {
+    border: 1px solid #8293ff;
 }
 QComboBox QAbstractItemView {
     background: white;
-    color: #18345b;
-    selection-background-color: #dce8ff;
+    color: #26334d;
+    border: 1px solid #e1e6ef;
+    selection-background-color: #edf0ff;
+    selection-color: #3447c7;
 }
-QTextEdit, QTableWidget {
-    background: white;
-    color: #18345b;
-    border: 1px solid #dce6f5;
-    border-radius: 7px;
-    gridline-color: #e7edf7;
-    selection-background-color: #dce8ff;
-    selection-color: #173765;
+QTextEdit {
+    padding: 9px;
+    selection-background-color: #e5e9ff;
+    selection-color: #26334d;
+}
+QTableWidget {
+    gridline-color: #edf0f5;
+    alternate-background-color: #f8f9fc;
+    selection-background-color: #e9edff;
+    selection-color: #26334d;
 }
 QHeaderView::section {
-    background: #f4f7fc;
-    color: #254873;
+    background: #f7f8fb;
+    color: #596781;
     border: none;
-    border-bottom: 1px solid #dce6f5;
-    padding: 8px;
+    border-bottom: 1px solid #e7ebf2;
+    padding: 10px 8px;
     font-weight: 600;
 }
 QScrollArea {
     border: none;
     background: transparent;
+}
+QScrollBar:vertical {
+    width: 9px;
+    background: transparent;
+    margin: 3px 1px;
+}
+QScrollBar::handle:vertical {
+    background: #cbd3e1;
+    border-radius: 4px;
+    min-height: 28px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #aeb9cc;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: transparent;
+    height: 0;
+}
+QToolTip {
+    background: #1c2942;
+    color: white;
+    border: none;
+    padding: 6px 8px;
 }
 """
 
@@ -183,6 +269,8 @@ class ChartCanvas(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         self.figure = Figure(figsize=(7, 3), dpi=100)
         self.axes = self.figure.add_subplot(111)
+        self.figure.set_facecolor("#ffffff")
+        self.axes.set_facecolor("#ffffff")
         super().__init__(self.figure)
         self.setParent(parent)
         self.setMinimumHeight(240)
@@ -195,7 +283,7 @@ class ChartCanvas(FigureCanvasQTAgg):
         self.axes.clear()
         self.axes.text(
             0.5, 0.5, message, ha="center", va="center",
-            transform=self.axes.transAxes, color="#7085a8"
+            transform=self.axes.transAxes, color="#77849b"
         )
         self.axes.set_xticks([])
         self.axes.set_yticks([])
@@ -226,9 +314,9 @@ class ChartCanvas(FigureCanvasQTAgg):
 
         self.axes.plot(
             np.arange(len(series)), series.values,
-            color="#3478f6", linewidth=1.5
+            color=CHART_BLUE, linewidth=1.8
         )
-        self.axes.set_title(str(col), loc="left", color="#254873")
+        self.axes.set_title(str(col), loc="left")
         self.axes.set_xlabel("Observasi")
         self.axes.grid(True, alpha=0.2)
         self.figure.tight_layout()
@@ -276,11 +364,11 @@ class AutoBizData(QMainWindow):
 
         sidebar = QWidget()
         sidebar.setObjectName("sidebar")
-        sidebar.setFixedWidth(205)
+        sidebar.setFixedWidth(224)
 
         side_layout = QVBoxLayout(sidebar)
-        side_layout.setContentsMargins(16, 20, 16, 18)
-        side_layout.setSpacing(8)
+        side_layout.setContentsMargins(19, 22, 19, 18)
+        side_layout.setSpacing(9)
 
         logo = QLabel()
         logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -318,7 +406,10 @@ class AutoBizData(QMainWindow):
         side_layout.addSpacing(22)
 
         section = QLabel("WORKSPACE")
-        section.setStyleSheet("color:#a9c5ff;font-size:10px;")
+        section.setStyleSheet(
+            "color:#8292ae;font-size:10px;font-weight:700;"
+            "letter-spacing:1px;"
+        )
         side_layout.addWidget(section)
 
         navigation = [
@@ -350,7 +441,8 @@ class AutoBizData(QMainWindow):
         )
         local_note.setWordWrap(True)
         local_note.setStyleSheet(
-            "color:#d7e5ff;font-size:10px;background:transparent;"
+            "color:#b6c1d5;font-size:10px;background:#202e49;"
+            "border:1px solid #2a3956;border-radius:10px;padding:12px;"
         )
         side_layout.addWidget(local_note)
 
@@ -359,16 +451,16 @@ class AutoBizData(QMainWindow):
         credit.setWordWrap(True)
         credit.setAlignment(Qt.AlignmentFlag.AlignLeft)
         credit.setStyleSheet(
-            "color:#d7e5ff;font-size:9px;background:transparent;"
-            "border-top:1px solid #31558b;padding-top:10px;"
+            "color:#8998b2;font-size:9px;background:transparent;"
+            "border-top:1px solid #2b3955;padding-top:10px;"
         )
         side_layout.addWidget(credit)
 
         content = QWidget()
         content.setObjectName("mainContent")
         content_layout = QVBoxLayout(content)
-        content_layout.setContentsMargins(22, 18, 22, 18)
-        content_layout.setSpacing(12)
+        content_layout.setContentsMargins(26, 22, 26, 22)
+        content_layout.setSpacing(14)
         content_layout.addWidget(self.pages)
 
         root_layout.addWidget(sidebar)
@@ -452,8 +544,8 @@ class AutoBizData(QMainWindow):
         self.file_badge = QLabel("Belum ada dataset")
         self.file_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.file_badge.setStyleSheet(
-            "background:white;border:1px solid #dce6f5;"
-            "border-radius:18px;padding:9px 13px;color:#526d96;"
+            "background:white;border:1px solid #e4e9f2;"
+            "border-radius:18px;padding:9px 13px;color:#65738c;"
         )
         header_row.addWidget(self.file_badge, 0, Qt.AlignmentFlag.AlignTop)
         layout.addLayout(header_row)
@@ -474,9 +566,11 @@ class AutoBizData(QMainWindow):
             ("duplicates", "DUPLIKAT"),
         ]:
             card = make_card()
+            card.setObjectName("metricCard")
+            card.setProperty("tone", key)
             card_layout = QVBoxLayout(card)
-            card_layout.setContentsMargins(14, 12, 14, 12)
-            card_layout.setSpacing(5)
+            card_layout.setContentsMargins(15, 13, 15, 12)
+            card_layout.setSpacing(6)
 
             label_widget = QLabel(label)
             label_widget.setObjectName("metricLabel")
@@ -1120,7 +1214,7 @@ class AutoBizData(QMainWindow):
 
             values = numeric[col].dropna()
             self.analysis_chart.axes.hist(
-                values, bins=30, color="#3478f6", alpha=0.85
+                values, bins=30, color=CHART_BLUE, alpha=0.85
             )
             self.analysis_chart.axes.set_title(
                 f"Distribusi {col}"
@@ -1261,7 +1355,9 @@ class AutoBizData(QMainWindow):
         self.analysis_chart.axes.clear()
         names = [x[0] for x in results]
         vals = [x[2] for x in results]
-        self.analysis_chart.axes.barh(names[::-1], vals[::-1], color="#3478f6")
+        self.analysis_chart.axes.barh(
+            names[::-1], vals[::-1], color=CHART_BLUE
+        )
         self.analysis_chart.axes.set_title("Perbandingan RMSE")
         self.analysis_chart.axes.set_xlabel("RMSE (lebih kecil lebih baik)")
         self.analysis_chart.figure.tight_layout()
@@ -1380,7 +1476,10 @@ class AutoBizData(QMainWindow):
         self.analysis_chart.axes.bar(
             [x[0] for x in results],
             [x[2] for x in results],
-            color="#3478f6"
+            color=[
+                CHART_COLORS[i % len(CHART_COLORS)]
+                for i in range(len(results))
+            ]
         )
         self.analysis_chart.axes.set_title("Weighted F1 antar-model")
         self.analysis_chart.axes.set_ylabel("Weighted F1")
@@ -1469,7 +1568,10 @@ class AutoBizData(QMainWindow):
         self.analysis_chart.axes.bar(
             [f"Cluster {i}" for i in counts.index],
             counts.values,
-            color="#3478f6"
+            color=[
+                CHART_COLORS[i % len(CHART_COLORS)]
+                for i in range(len(counts))
+            ]
         )
         self.analysis_chart.axes.set_title("Ukuran setiap cluster")
         self.analysis_chart.setMinimumHeight(260)
@@ -1608,15 +1710,15 @@ class AutoBizData(QMainWindow):
         self.analysis_chart.axes.clear()
         self.analysis_chart.axes.plot(
             series.index, series.values,
-            label="Aktual", color="#3478f6"
+            label="Aktual", color=CHART_BLUE
         )
         self.analysis_chart.axes.plot(
             y_test.index, pred,
-            label="Prediksi test", color="#e39b36"
+            label="Prediksi test", color=CHART_AMBER
         )
         self.analysis_chart.axes.plot(
             future_dates, future,
-            label="Forecast", color="#28a276", linestyle="--"
+            label="Forecast", color=CHART_TEAL, linestyle="--"
         )
         self.analysis_chart.axes.set_title(f"Forecast {target}")
         self.analysis_chart.axes.legend()
@@ -1681,7 +1783,7 @@ class AutoBizData(QMainWindow):
         self.analysis_chart.axes.bar(
             ["Normal", "Anomali"],
             [int((~anomaly_mask).sum()), count],
-            color=["#3478f6", "#e39b36"]
+            color=[CHART_BLUE, CHART_AMBER]
         )
         self.analysis_chart.axes.set_title("Hasil anomaly detection")
         self.analysis_chart.figure.tight_layout()
@@ -1953,7 +2055,7 @@ class AutoBizData(QMainWindow):
         )
         info.setWordWrap(True)
         info.setStyleSheet(
-            "background:transparent;border:none;color:#254873;"
+            "background:transparent;border:none;color:#34425d;"
         )
 
         card_layout.addWidget(info)
